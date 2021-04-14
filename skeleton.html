@@ -10,6 +10,7 @@
 <body>
     <div id="namespace">
         <p1> 2018-10284 손진아 </p1>
+        <button>refresh</button>
     </div>
     <div id="chartspace">
         <label for="xaxis">Plot X Domain</label>
@@ -78,19 +79,26 @@
                     var selectedOption = d3.select(this).property("value")
                     // run the func that updates the scatter plot with the selected option
                     console.log(selectedOption);
-                })
+                });
 
+                // add handlers on the drop down menus
                 d3.select("#yaxis").on("change", function (d) {
                     var selectedOption = d3.select(this).property("value")
                     // run the func that updates the scatter plot with the selected option
                     console.log(selectedOption);
-                })
+                });
 
                 d3.select("#bardomain").on("change", function (d) {
                     var selectedOption = d3.select(this).property("value")
                     // run the function that updates the bar Chart
                     console.log(selectedOption);
-                })
+                });
+
+                // add handler for refresh button
+                d3.select("button").on("click", function (d) {
+                    console.log("clicked");
+                });
+
 
 
 
