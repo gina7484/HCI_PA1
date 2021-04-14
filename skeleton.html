@@ -12,13 +12,15 @@
         <p1> 2018-10284 손진아 </p1>
         <button>refresh</button>
     </div>
-    <div id="chartspace">
+    <div id="control">
         <label for="xaxis">Plot X Domain</label>
         <select name="xaxis" id="xaxis"></select>
         <label for="yaxis">Plot Y Domain</label>
         <select name="yaxis" id="yaxis"></select>
         <label for="bardomain">Bar X Domain</label>
         <select name="bardomain" id="bardomain"></select>
+    </div>
+    <div id="chartspace">
     </div>
     <script src="https://d3js.org/d3.v6.min.js"></script>
     <script>
@@ -32,6 +34,14 @@
         let margin = { top: 20, right: 10, bottom: 30, left: 40 }
         let width = svgWidth - margin.left - margin.right
         let height = svgHeight - margin.top - margin.bottom
+        let svg = d3.select('#chartspace')
+            .append('svg')
+            .attr('width', svgWidth)
+            .attr('height', svgHeight)
+            .append('g')
+            .attr('transform', translate(margin.left, margin.top));
+
+        let numberOfData = 100;
 
         // 데이터 경로 수정하지 말아주세요
         d3.json('data.json')
@@ -47,10 +57,10 @@
                     d.imdb_votes = parseFloat(d.imdb_votes);
                 });
 
-                var scatterplotAxis = ["budget", "us_gross", "worldwide_gross", "rotten_rating", "imdb_rating", "imdb_votes"];
-                var barchartAxis = ["title", "genre", "creative_type", "source", "release", "rating"];
-
                 // add the options to dropdown menus
+                var scatterplotAxis = ["budget", "us_gross", "worldwide_gross", "rotten_rating", "imdb_rating", "imdb_votes"];
+                var barchartAxis = ["genre", "creative_type", "source", "release", "rating"];
+
                 d3.select("#xaxis")
                     .selectAll('option')
                     .data(scatterplotAxis)
@@ -75,28 +85,144 @@
                     .text(function (d) { return d; })
                     .attr("value", function (d) { return d; });
 
-                d3.select("#xaxis").on("change", function (d) {
-                    var selectedOption = d3.select(this).property("value")
-                    // run the func that updates the scatter plot with the selected option
-                    console.log(selectedOption);
-                });
+                // chart initialize
+                let chosenData = data.slice(0, numberOfData);
+
+                // axis
+                let selectedXOption = "budget";
+                let selectedYOption = "budget";
+
+                let x = d3.scaleLinear()
+                    .domain([
+                        d3.min(chosenData, d => d[selectedXOption]),
+                        d3.max(chosenData, d => d[selectedXOption])
+                    ])
+                    .range([0, width]);
+
+                let y = d3.scaleLinear()
+                    .domain([
+                        d3.min(chosenData, d => d[selectedYOption]),
+                        d3.max(chosenData, d => d[selectedYOption])
+                    ])
+                    .range([height, 0]);
+
+                let xAxis = d3.axisBottom(x);
+                let yAxis = d3.axisLeft(y);
+
+                svg
+                    .append('g')
+                    .attr("class", "xaxis1")
+                    .attr('transform', translate(0, height))
+                    .call(xAxis);
+                svg
+                    .append('g')
+                    .attr("class", "yaxis1")
+                    .attr('transform', translate(0, 0))
+                    .call(yAxis);
+
+                // color (category)
+                let barchartData = d3.rollup(chosenData, v => v.length, d => d.genre);
+                let category = Array.from(barchartData.keys());
+                let color = d3.scaleOrdinal()
+                    .domain(category)
+                    .range(d3.schemePaired);
+                //.range(d3.schemeBlues[category.length]);
+
+                // data bind
+                let circle = svg
+                    .selectAll('circle')
+                    .data(chosenData)
+                    .join('circle')
+                    .attr('r', 3.5)
+                    .attr('cx', d => x(d[selectedXOption]))
+                    .attr('cy', d => y(d[selectedYOption]))
+                    .style('fill', d => color(d.genre));
+
+
+                //---------- update functions & handlers ----------------------
+                let scatterplotUpdate = (xOption, yOption) => {
+                    x = d3.scaleLinear()
+                        .domain([
+                            d3.min(chosenData, d => d[xOption]),
+                            d3.max(chosenData, d => d[xOption])
+                        ])
+                        .range([0, width]);
+
+                    y = d3.scaleLinear()
+                        .domain([
+                            d3.min(chosenData, d => d[yOption]),
+                            d3.max(chosenData, d => d[yOption])
+                        ])
+                        .range([height, 0]);
+
+                    xAxis = d3.axisBottom(x);
+                    yAxis = d3.axisLeft(y);
+
+                    svg.select(".xaxis1")
+                        .transition()
+                        .delay(100)
+                        .duration(1000)
+                        .call(xAxis);
+
+                    svg.select(".yaxis1")
+                        .transition()
+                        .delay(100)
+                        .duration(1000)
+                        .call(yAxis);
+
+                    circle = svg
+                        .selectAll('circle')
+                        .data(chosenData)
+                        .join('circle')
+                        .transition()
+                        .delay(100)
+                        .duration(1000)
+                        .attr('r', 3.5)
+                        .attr('cx', d => x(d[xOption]))
+                        .attr('cy', d => y(d[yOption]));
+                    //.style('fill', d => color(d.genre));
+                };
 
                 // add handlers on the drop down menus
+                d3.select("#xaxis").on("change", function (d) {
+                    selectedXOption = d3.select(this).property("value")
+                    scatterplotUpdate(selectedXOption, selectedYOption);
+                });
+
                 d3.select("#yaxis").on("change", function (d) {
-                    var selectedOption = d3.select(this).property("value")
-                    // run the func that updates the scatter plot with the selected option
-                    console.log(selectedOption);
+                    selectedYOption = d3.select(this).property("value")
+                    scatterplotUpdate(selectedXOption, selectedYOption);
                 });
 
                 d3.select("#bardomain").on("change", function (d) {
-                    var selectedOption = d3.select(this).property("value")
+                    let selectedCategory = d3.select(this).property("value")
                     // run the function that updates the bar Chart
-                    console.log(selectedOption);
+
+                    barchartData = d3.rollup(chosenData, v => v.length, d => d[selectedCategory]);
+                    category = Array.from(barchartData.keys());
+                    color = d3.scaleOrdinal()
+                        .domain(category)
+                        .range(d3.schemePaired);
+
+                    circle = svg
+                        .selectAll('circle')
+                        .data(chosenData)
+                        .join('circle')
+                        .transition()
+                        .delay(100)
+                        .duration(1000)
+                        //.attr('r', 3.5)
+                        //.attr('cx', d => x(d[xOption]))
+                        //.attr('cy', d => y(d[yOption]))
+                        .style('fill', d => color(d[selectedCategory]));
                 });
 
                 // add handler for refresh button
                 d3.select("button").on("click", function (d) {
                     console.log("clicked");
+                    d3.shuffle(data);
+                    chosenData = data.slice(0, numberOfData);
+                    scatterplotUpdate(selectedXOption, selectedYOption);
                 });
 
 
