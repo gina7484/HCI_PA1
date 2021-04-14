@@ -103,6 +103,7 @@
                 // scatter plot axis
                 let selectedXOption = "budget";
                 let selectedYOption = "budget";
+                let barXDomain = "genre";
 
                 let x = d3.scaleLinear()
                     .domain([
@@ -133,12 +134,55 @@
                     .call(yAxis);
 
                 // color (category)
-                let barchartData = d3.rollup(chosenData, v => v.length, d => d.genre);
-                let category = Array.from(barchartData.keys());
+                let barchartMap = d3.rollup(chosenData, v => v.length, d => d[barXDomain]);
+                let barchartArray = Array.from(barchartMap);
+                barchartArray.sort(function (a, b) {
+                    if (a[1] < b[1]) {
+                        return 1;
+                    }
+                    if (a[1] > b[1]) {
+                        return -1;
+                    }
+                    // a must be equal to b
+                    return 0;
+                });
+
+                let category = barchartArray.map(d => d[0]);
+
                 let color = d3.scaleOrdinal()
                     .domain(category)
                     .range(d3.schemePaired);
                 //.range(d3.schemeBlues[category.length]);
+
+                // bar chart x axis
+                let barXAxis = d3.scaleBand()
+                    .range([0, width])
+                    .domain(category)
+                    .padding(0.2);
+
+                barChart.append("g")
+                    .attr("class", "barXAxis")
+                    .attr('transform', translate(0, height))
+                    .call(d3.axisBottom(barXAxis))
+                    .selectAll("text");
+
+                // Add Y axis
+                let barYAxis = d3.scaleLinear()
+                    .domain([0, barchartArray[0][1]])
+                    .range([height, 0]);
+                barChart.append("g")
+                    .call(d3.axisLeft(barYAxis));
+
+                /*
+            svg.selectAll("rect")
+                .data(barchartArray)
+                .join("rect")
+                .attr("x", d => 120 + barXAxis(d[0]))
+                .attr("y", d => barYAxis(d[1]))
+                .attr("width", barXAxis.bandwidth())
+                .attr("height", function (d) { return height - d[1]; })
+                .attr("fill", "#69b3a2")
+*/
 
                 // data bind
                 let circle = svg
