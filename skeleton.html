@@ -4,7 +4,12 @@
 <head>
     <meta charset="utf-8" />
     <title>2018-10284 손진아</title>
-    <style></style>
+    <style>
+        .selected {
+            stroke: black;
+            stroke-width: 2;
+        }
+    </style>
 </head>
 
 <body>
@@ -138,6 +143,34 @@
                     .attr('cy', d => y(d[selectedYOption]))
                     .style('fill', d => color(d.genre));
 
+                //adding brushing
+                let brush = d3.brush()
+                    .extent([[0, 0], [width, height]])
+                    .on("start brush end", brushed);
+
+                svg
+                    .append('g')
+                    .attr("class", "brush")
+                    .call(brush);
+
+                function brushed({ selection }) {
+                    console.log("brush called!");
+                    let brushCircle = svg
+                        .selectAll('circle');
+
+                    if (selection === null) {
+                        brushCircle.classed("selected", false);
+                    }
+                    else {
+                        let [[x0, y0], [x1, y1]] = selection;
+                        brushCircle.classed("selected", d => {
+                            let xCoord = x(d[selectedXOption]);
+                            let yCoord = y(d[selectedYOption]);
+                            return x0 <= xCoord && xCoord <= x1
+                                && y0 <= yCoord && yCoord <= y1;
+                        });
+                    }
+                }
 
                 //---------- update functions & handlers ----------------------
                 let scatterplotUpdate = (xOption, yOption) => {
@@ -185,12 +218,27 @@
 
                 // add handlers on the drop down menus
                 d3.select("#xaxis").on("change", function (d) {
+                    svg
+                        .selectAll(".selected")
+                        .classed("selected", false);
+
+                    svg
+                        .select(".brush")
+                        .call(d3.brush().clear);
                     selectedXOption = d3.select(this).property("value")
                     scatterplotUpdate(selectedXOption, selectedYOption);
                 });
 
                 d3.select("#yaxis").on("change", function (d) {
+                    svg
+                        .selectAll(".selected")
+                        .classed("selected", false);
+
+                    svg
+                        .select(".brush")
+                        .call(d3.brush().clear);
                     selectedYOption = d3.select(this).property("value")
+
                     scatterplotUpdate(selectedXOption, selectedYOption);
                 });
 
@@ -219,7 +267,14 @@
 
                 // add handler for refresh button
                 d3.select("button").on("click", function (d) {
-                    console.log("clicked");
+                    svg
+                        .selectAll(".selected")
+                        .classed("selected", false);
+
+                    svg
+                        .select(".brush")
+                        .call(d3.brush().clear);
+
                     d3.shuffle(data);
                     chosenData = data.slice(0, numberOfData);
                     scatterplotUpdate(selectedXOption, selectedYOption);
