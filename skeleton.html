@@ -11,7 +11,14 @@
     <div id="namespace">
         <p1> 2018-10284 손진아 </p1>
     </div>
-    <div id="chartspace"></div>
+    <div id="chartspace">
+        <label for="xaxis">Plot X Domain</label>
+        <select name="xaxis" id="xaxis"></select>
+        <label for="yaxis">Plot Y Domain</label>
+        <select name="yaxis" id="yaxis"></select>
+        <label for="bardomain">Bar X Domain</label>
+        <select name="bardomain" id="bardomain"></select>
+    </div>
     <script src="https://d3js.org/d3.v6.min.js"></script>
     <script>
         function translate(x, y) {
@@ -29,6 +36,64 @@
         d3.json('data.json')
             .then((data) => {
                 // 여기다 코드를 작성
+                // processing data
+                data.forEach(d => {
+                    d.budget = parseFloat(d.budget);
+                    d.us_gross = parseFloat(d.us_gross);
+                    d.worldwide_gross = parseFloat(d.worldwide_gross);
+                    d.rotten_rating = parseFloat(d.rotten_rating);
+                    d.imdb_rating = parseFloat(d.imdb_rating);
+                    d.imdb_votes = parseFloat(d.imdb_votes);
+                });
+
+                var scatterplotAxis = ["budget", "us_gross", "worldwide_gross", "rotten_rating", "imdb_rating", "imdb_votes"];
+                var barchartAxis = ["title", "genre", "creative_type", "source", "release", "rating"];
+
+                // add the options to dropdown menus
+                d3.select("#xaxis")
+                    .selectAll('option')
+                    .data(scatterplotAxis)
+                    .enter()
+                    .append('option')
+                    .text(function (d) { return d; })
+                    .attr("value", function (d) { return d; });
+
+                d3.select("#yaxis")
+                    .selectAll('option')
+                    .data(scatterplotAxis)
+                    .enter()
+                    .append('option')
+                    .text(function (d) { return d; })
+                    .attr("value", function (d) { return d; });
+
+                d3.select("#bardomain")
+                    .selectAll('option')
+                    .data(barchartAxis)
+                    .enter()
+                    .append('option')
+                    .text(function (d) { return d; })
+                    .attr("value", function (d) { return d; });
+
+                d3.select("#xaxis").on("change", function (d) {
+                    var selectedOption = d3.select(this).property("value")
+                    // run the func that updates the scatter plot with the selected option
+                    console.log(selectedOption);
+                })
+
+                d3.select("#yaxis").on("change", function (d) {
+                    var selectedOption = d3.select(this).property("value")
+                    // run the func that updates the scatter plot with the selected option
+                    console.log(selectedOption);
+                })
+
+                d3.select("#bardomain").on("change", function (d) {
+                    var selectedOption = d3.select(this).property("value")
+                    // run the function that updates the bar Chart
+                    console.log(selectedOption);
+                })
+
+
+
             })
             .catch((error) => {
                 throw error
