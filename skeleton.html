@@ -46,6 +46,13 @@
             .append('g')
             .attr('transform', translate(margin.left, margin.top));
 
+        let barChart = d3.select('#chartspace')
+            .append('svg')
+            .attr('width', svgWidth)
+            .attr('height', svgHeight)
+            .append('g')
+            .attr('transform', translate(margin.left, margin.top));
+
         let numberOfData = 100;
 
         // 데이터 경로 수정하지 말아주세요
@@ -93,7 +100,7 @@
                 // chart initialize
                 let chosenData = data.slice(0, numberOfData);
 
-                // axis
+                // scatter plot axis
                 let selectedXOption = "budget";
                 let selectedYOption = "budget";
 
