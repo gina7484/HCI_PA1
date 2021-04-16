@@ -360,14 +360,10 @@
                 });
 
                 d3.select("#bardomain").on("change", function (d) {
-                    let selectedCategory = d3.select(this).property("value")
+                    barXDomain = d3.select(this).property("value")
                     // run the function that updates the bar Chart
 
-                    barchartData = d3.rollup(chosenData, v => v.length, d => d[selectedCategory]);
-                    category = Array.from(barchartData.keys());
-                    color = d3.scaleOrdinal()
-                        .domain(category)
-                        .range(d3.schemePaired);
+                    barchartUpdate();
 
                     svg
                         .selectAll('circle')
@@ -379,7 +375,7 @@
                         //.attr('r', 3.5)
                         //.attr('cx', d => x(d[xOption]))
                         //.attr('cy', d => y(d[yOption]))
-                        .style('fill', d => color(d[selectedCategory]));
+                        .style('fill', d => color(d[barXDomain]));
                 });
 
                 // add handler for refresh button
