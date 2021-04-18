@@ -13,6 +13,20 @@
         .unselected-bar {
             opacity: 0.1;
         }
+
+        #chartspace {
+            float: inline-start;
+        }
+
+        #scatterplot {
+            width: 550px;
+            float: left;
+        }
+
+        #barchart {
+            width: 550px;
+            float: left;
+        }
     </style>
 </head>
 
@@ -21,15 +35,25 @@
         <p1> 2018-10284 손진아 </p1>
         <button>refresh</button>
     </div>
-    <div id="control">
-        <label for="xaxis">Plot X Domain</label>
-        <select name="xaxis" id="xaxis"></select>
-        <label for="yaxis">Plot Y Domain</label>
-        <select name="yaxis" id="yaxis"></select>
-        <label for="bardomain">Bar X Domain</label>
-        <select name="bardomain" id="bardomain"></select>
-    </div>
     <div id="chartspace">
+        <div id="scatterplot">
+            <div id="scatterplot-control">
+                <label for="xaxis">Plot X Domain</label>
+                <select name="xaxis" id="xaxis"></select>
+                <label for="yaxis">Plot Y Domain</label>
+                <select name="yaxis" id="yaxis"></select>
+            </div>
+            <div id="scatterplotspace">
+            </div>
+        </div>
+        <div id="barchart">
+            <div id="barchart-control">
+                <label for="bardomain">Bar X Domain</label>
+                <select name="bardomain" id="bardomain"></select>
+            </div>
+            <div id="barchartspace">
+            </div>
+        </div>
     </div>
     <script src="https://d3js.org/d3.v6.min.js"></script>
     <script>
@@ -43,14 +67,16 @@
         let margin = { top: 20, right: 10, bottom: 30, left: 40 }
         let width = svgWidth - margin.left - margin.right
         let height = svgHeight - margin.top - margin.bottom
-        let scatterplot = d3.select('#chartspace')
+
+        // add svg for scatterplot & bar chart
+        let scatterplot = d3.select('#scatterplotspace')
             .append('svg')
             .attr('width', svgWidth)
             .attr('height', svgHeight)
             .append('g')
             .attr('transform', translate(margin.left, margin.top));
 
-        let barChart = d3.select('#chartspace')
+        let barChart = d3.select('#barchartspace')
             .append('svg')
             .attr('width', svgWidth)
             .attr('height', svgHeight)
@@ -63,6 +89,7 @@
         d3.json('data.json')
             .then((data) => {
                 // 여기다 코드를 작성
+
                 // processing data
                 data.forEach(d => {
                     d.budget = parseFloat(d.budget);
@@ -130,11 +157,17 @@
                     .append('g')
                     .attr("class", "xaxis1")
                     .attr('transform', translate(0, height))
+                    .transition()
+                    .delay(100)
+                    .duration(1000)
                     .call(xAxis);
                 scatterplot
                     .append('g')
                     .attr("class", "yaxis1")
                     .attr('transform', translate(0, 0))
+                    .transition()
+                    .delay(100)
+                    .duration(1000)
                     .call(yAxis);
 
                 // color (category)
@@ -168,6 +201,9 @@
                 barChart.append("g")
                     .attr("class", "barXAxis")
                     .attr('transform', translate(0, height))
+                    .transition()
+                    .delay(100)
+                    .duration(1000)
                     .call(d3.axisBottom(barXAxis));
 
                 // Add Y axis
@@ -178,13 +214,19 @@
                 barChart.append("g")
                     .attr("class", "barYAxis")
                     .attr('transform', translate(0, 0))
+                    .transition()
+                    .delay(100)
+                    .duration(1000)
                     .call(d3.axisLeft(barYAxis));
 
                 // data bind
                 scatterplot
                     .selectAll('circle')
-                    .data(chosenData)
+                    .data(chosenData, d => d["title"])
                     .join('circle')
+                    .transition()
+                    .delay(100)
+                    .duration(1000)
                     .attr('r', 3.5)
                     .attr('cx', d => x(d[selectedXOption]))
                     .attr('cy', d => y(d[selectedYOption]))
@@ -194,6 +236,9 @@
                     .selectAll('rect')
                     .data(barchartArray)
                     .join('rect')
+                    .transition()
+                    .delay(100)
+                    .duration(1000)
                     .attr('class', 'barchart-rect')
                     .attr('x', d => barXAxis(d[0]))
                     .attr('y', d => barYAxis(d[1]))
@@ -260,18 +305,41 @@
                         .delay(100)
                         .duration(1000)
                         .call(yAxis);
-
+                    /*
                     scatterplot
                         .selectAll('circle')
-                        .data(chosenData)
+                        .data(chosenData,d=>d["title"])
                         .join('circle')
                         .transition()
                         .delay(100)
                         .duration(1000)
                         .attr('r', 3.5)
                         .attr('cx', d => x(d[xOption]))
-                        .attr('cy', d => y(d[yOption]));
-                    //.style('fill', d => color(d.genre));
+                        .attr('cy', d => y(d[yOption]))
+                        .style('fill', d => color(d[barXDomain]));
+                    */
+
+                    scatterplot
+                        .selectAll('circle')
+                        .data(chosenData, d => d["title"])
+                        .join(
+                            enter => enter.append('circle')
+                                .call(enter => enter.transition()
+                                    .delay(100)
+                                    .duration(1000)
+                                    .attr('r', 3.5)
+                                    .attr('cx', d => x(d[xOption]))
+                                    .attr('cy', d => y(d[yOption]))
+                                    .style('fill', d => color(d[barXDomain])),
+                                ),
+                            update => update.call(enter => enter.transition()
+                                .delay(100)
+                                .duration(1000)
+                                .attr('r', 3.5)
+                                .attr('cx', d => x(d[xOption]))
+                                .attr('cy', d => y(d[yOption]))
+                                .style('fill', d => color(d[barXDomain]))),
+                        );
                 };
 
                 let barchartUpdate = () => {
@@ -360,8 +428,7 @@
 
                 }
 
-                // add handlers on the drop down menus
-                d3.select("#xaxis").on("change", function () {
+                let clearBrush = () => {
                     scatterplot
                         .selectAll(".selected")
                         .classed("selected", false);
@@ -369,24 +436,27 @@
                     scatterplot
                         .select(".brush")
                         .call(d3.brush().clear);
+                };
+
+                // add handlers on the drop down menus
+                d3.select("#xaxis").on("change", function () {
+                    clearBrush();
+
                     selectedXOption = d3.select(this).property("value")
                     scatterplotUpdate(selectedXOption, selectedYOption);
                 });
 
                 d3.select("#yaxis").on("change", function () {
-                    scatterplot
-                        .selectAll(".selected")
-                        .classed("selected", false);
+                    clearBrush();
 
-                    scatterplot
-                        .select(".brush")
-                        .call(d3.brush().clear);
                     selectedYOption = d3.select(this).property("value")
 
                     scatterplotUpdate(selectedXOption, selectedYOption);
                 });
 
                 d3.select("#bardomain").on("change", function () {
+                    clearBrush();
+
                     barXDomain = d3.select(this).property("value")
                     // run the function that updates the bar Chart
 
@@ -394,7 +464,7 @@
 
                     scatterplot
                         .selectAll('circle')
-                        .data(chosenData)
+                        .data(chosenData, d => d["title"])
                         .join('circle')
                         .transition()
                         .delay(100)
@@ -407,18 +477,13 @@
 
                 // add handler for refresh button
                 d3.select("button").on("click", function () {
-                    scatterplot
-                        .selectAll(".selected")
-                        .classed("selected", false);
-
-                    scatterplot
-                        .select(".brush")
-                        .call(d3.brush().clear);
+                    clearBrush();
 
                     d3.shuffle(data);
+
                     chosenData = data.slice(0, numberOfData);
-                    scatterplotUpdate(selectedXOption, selectedYOption);
                     barchartUpdate();
+                    scatterplotUpdate(selectedXOption, selectedYOption);
                 });
 
                 barChart
