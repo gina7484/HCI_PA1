@@ -101,41 +101,45 @@
                 });
 
                 // add the options to dropdown menus
-                var scatterplotAxis = ["budget", "us_gross", "worldwide_gross", "rotten_rating", "imdb_rating", "imdb_votes"];
-                var barchartAxis = ["genre", "creative_type", "source", "release", "rating"];
+                let scatterplotAxis = ["budget", "us_gross", "worldwide_gross", "rotten_rating", "imdb_rating", "imdb_votes"];
+                let barchartAxis = ["genre", "creative_type", "source", "release", "rating"];
 
+                // append options for scatter plot x axis
                 d3.select("#xaxis")
                     .selectAll('option')
                     .data(scatterplotAxis)
                     .enter()
                     .append('option')
-                    .text(function (d) { return d; })
-                    .attr("value", function (d) { return d; });
+                    .text(d => d)
+                    .attr("value", d => d);
 
+                // append options for scatter plot y axis
                 d3.select("#yaxis")
                     .selectAll('option')
                     .data(scatterplotAxis)
                     .enter()
                     .append('option')
-                    .text(function (d) { return d; })
-                    .attr("value", function (d) { return d; });
+                    .text(d => d)
+                    .attr("value", d => d);
 
+                // append options for bar plot x domain
                 d3.select("#bardomain")
                     .selectAll('option')
                     .data(barchartAxis)
                     .enter()
                     .append('option')
-                    .text(function (d) { return d; })
-                    .attr("value", function (d) { return d; });
+                    .text(d => d)
+                    .attr("value", d => d);
 
                 // chart initialize
                 let chosenData = data.slice(0, numberOfData);
 
-                // scatter plot axis
+                // scatter plot axis (initial values)
                 let selectedXOption = "budget";
                 let selectedYOption = "budget";
                 let barXDomain = "genre";
 
+                // drawing axis
                 let x = d3.scaleLinear()
                     .domain([
                         d3.min(chosenData, d => d[selectedXOption]),
@@ -180,7 +184,7 @@
                     if (a[1] > b[1]) {
                         return -1;
                     }
-                    // a must be equal to b
+
                     return 0;
                 });
 
@@ -189,7 +193,6 @@
                 let color = d3.scaleOrdinal()
                     .domain(category)
                     .range(d3.schemePaired);
-                //.range(d3.schemeBlues[category.length]);
 
                 // bar chart x axis
                 let barXAxis = d3.scaleBand()
@@ -206,7 +209,7 @@
                     .duration(1000)
                     .call(d3.axisBottom(barXAxis));
 
-                // Add Y axis
+                // bar chart y axis
                 let barYAxis = d3.scaleLinear()
                     .domain([0, barchartArray[0][1]])
                     .range([height, 0]);
@@ -257,7 +260,7 @@
                     .call(brush);
 
                 function brushed({ selection }) {
-                    console.log("brush called!");
+                    // console.log("brush called!");
                     let brushCircle = scatterplot
                         .selectAll('circle');
 
@@ -305,19 +308,6 @@
                         .delay(100)
                         .duration(1000)
                         .call(yAxis);
-                    /*
-                    scatterplot
-                        .selectAll('circle')
-                        .data(chosenData,d=>d["title"])
-                        .join('circle')
-                        .transition()
-                        .delay(100)
-                        .duration(1000)
-                        .attr('r', 3.5)
-                        .attr('cx', d => x(d[xOption]))
-                        .attr('cy', d => y(d[yOption]))
-                        .style('fill', d => color(d[barXDomain]));
-                    */
 
                     scatterplot
                         .selectAll('circle')
@@ -423,8 +413,8 @@
                         .attr('height', d => height - barYAxis(d[1]))
                         .style('fill', d => color(d[0]));
 
-                    console.log(barchartArray);
-                    console.log(category);
+                    //console.log(barchartArray);
+                    //console.log(category);
 
                 }
 
@@ -458,7 +448,6 @@
                     clearBrush();
 
                     barXDomain = d3.select(this).property("value")
-                    // run the function that updates the bar Chart
 
                     barchartUpdate();
 
@@ -470,8 +459,8 @@
                         .delay(100)
                         .duration(1000)
                         //.attr('r', 3.5)
-                        //.attr('cx', d => x(d[xOption]))
-                        //.attr('cy', d => y(d[yOption]))
+                        //.attr('cx', d => x(d[selectedXOption]))
+                        //.attr('cy', d => y(d[selectedXOption]))
                         .style('fill', d => color(d[barXDomain]));
                 });
 
